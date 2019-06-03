@@ -1,16 +1,17 @@
-import java.io.IOException;
 import java.net.*;
 
 public class UdpClientReceiver extends Thread {
 
-    private static final int PORT = 1983;
+//    private static final int PORT = 1983;
 //    private static final int LISTEN_AT_PORT = 1983;
-    private DatagramSocket sendToSocket, ListenAtSocket;
+    private DatagramSocket sendToSocket, listenAtSocket;
     private InetAddress host;
     private static UdpClientReceiver client;
+    private Controller controller;
 
-    public UdpClientReceiver(int receiverPort) throws SocketException, UnknownHostException {
-        ListenAtSocket = new DatagramSocket(receiverPort);
+    public UdpClientReceiver(DatagramSocket receiverSocket, Controller controller) throws SocketException, UnknownHostException {
+        listenAtSocket = receiverSocket;
+        this.controller = controller;
 //        sendToSocket = new DatagramSocket();
 //        host = InetAddress.getByName("localhost");
     }
@@ -22,23 +23,23 @@ public class UdpClientReceiver extends Thread {
 //        return client;
 //    }
 
-
     @Override
     public void run() {
         try {
 
-            byte[] buffer = new byte[49];
+            byte[] buffer = new byte[Constants.HAMMING_ENCODED_SIZE];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-            System.out.println("receiving");
+//            System.out.println("receiving");
             while(true)
             {
-                System.out.println("In loop..");
-                ListenAtSocket.receive(reply);
-                System.out.println("RECEIVED: " + new String(reply.getData()));
-                Message msg = new MessageEncoder().decode(reply.getData());
-                if(msg != null){
-                    System.out.println(msg.toString());
-                }
+//                System.out.println("In loop..");
+                listenAtSocket.receive(reply);
+                controller.receive(reply.getData());
+//                System.out.println("RECEIVED: " + new String(reply.getData()));
+//                Message msg = new MessageBuilder().extract(reply.getData());
+//                if(msg != null){
+//                    System.out.println(msg.toString());
+//                }
             }
 
         } catch (Exception e) {
@@ -51,7 +52,7 @@ public class UdpClientReceiver extends Thread {
 //        byte[] buffer = new byte[49];
 //        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
 //        try {
-//            ListenAtSocket.receive(reply);
+//            listenAtSocket.unWrap(reply);
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }

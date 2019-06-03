@@ -1,13 +1,10 @@
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class MessageEncoder {
+public class MessageBuilder {
 
-    private static final int ENCODE_SIZE = 129;
-    private static final int DATA_SIZE = 127;
-
-    public Message decode(byte[] data) {
-//        if (data.length == 258) {
+    public Message extract(byte[] data) {
+//        if (data.length == MESSAGE_SIZE) {
             int id = data[0];
             int len = data[1];
             byte[] payloadData = Arrays.copyOfRange(data, 2, 2+len);
@@ -18,15 +15,15 @@ public class MessageEncoder {
 //        return null;
     }
 
-    public byte[] encode(int id, byte[] data) {
-        ByteBuffer buffer = ByteBuffer.allocate(ENCODE_SIZE);
+    public byte[] build(int id, byte[] data) {
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.MESSAGE_SIZE);
 
         buffer.put((byte) id);
 
         int dataLen = data.length;
         buffer.put((byte) dataLen);
 
-        byte[] nullPadding = new byte[DATA_SIZE - dataLen];
+        byte[] nullPadding = new byte[Constants.DATA_BYTES_PER_MESSAGE - dataLen];
         buffer.put(data);
         buffer.put(nullPadding);
 

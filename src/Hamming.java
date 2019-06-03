@@ -1,87 +1,45 @@
-import java.util.*;
-
 class Hamming {
-    public static void main(String args[]) {
-        /*
-        Scanner scan = new Scanner(System.in);
-        System.out.println("Enter the number of bits for the Hamming data:");
-        int n = scan.nextInt();
-        int a[] = new int[n];
 
-        for(int i=0 ; i < n ; i++) {
-            System.out.println("Enter bit no. " + (n-i) + ":");
-            a[n-i-1] = scan.nextInt();
-        }
+    private static final int DATA_BITS_PER_BYTE = 4;
+    private static final int PARITY_BITS_PER_BYTE = 3;
+    private static final int DATA_BITS_WITH_PARITY = 7;
 
-        System.out.println("You entered:");
-        for(int i=0 ; i < n ; i++) {
-            System.out.print(a[n-i-1]);
-        }
-        System.out.println();
-
-        int b[] = generateCode(a);
-
-        System.out.println("Generated code is:");
-        for(int i=0 ; i < b.length ; i++) {
-            System.out.print(b[b.length-i-1]);
-        }
-        System.out.println();
-
-        // Difference in the sizes of original and new array will give us the number of parity bits added.
-        System.out.println("Enter position of a bit to alter to check for error detection at the receiver end (0 for no error):");
-        int error = scan.nextInt();
-        if(error != 0) {
-            b[error-1] = (b[error-1]+1)%2;
-        }
-        System.out.println("Sent code is:");
-        for(int i=0 ; i < b.length ; i++) {
-            System.out.print(b[b.length-i-1]);
-        }
-        System.out.println();
-        receive(b, b.length - a.length);
-        */
-        byte[] input = wrapper((byte) 127);
-        input[0] = (byte) (input[0] & 0xfd);
-        System.out.println(input[0]);
-        receiveWrapper(input);
-    }
-
-    static private byte[] wrapper(byte b) {
+    public byte[] encode(byte b) {
         byte[] result = new byte[2];
-        int[] wr = new int[4];
+        int[] partialByte = new int[DATA_BITS_PER_BYTE];
 
-        for (int i = 3; i >= 0; i--) {
-            wr[i] = b & 1;
+        for (int i = DATA_BITS_PER_BYTE-1; i >= 0; i--) {
+            partialByte[i] = b & 1;
             b = (byte) (b >> 1);
         }
-        result[1] = wrapWrapper(wr);
+        result[1] = getCodedByteFromInt(partialByte);
 
-        for (int i = 3; i >= 0; i--) {
-            wr[i] = b & 1;
+        for (int i = DATA_BITS_PER_BYTE-1; i >= 0; i--) {
+            partialByte[i] = b & 1;
             b = (byte) (b >> 1);
         }
 
-        result[0] = wrapWrapper(wr);
+        result[0] = getCodedByteFromInt(partialByte);
 
         return result;
     }
 
-    private static byte wrapWrapper(int[] wr) {
-        int[] result = generateCode(wr);
+    private byte getCodedByteFromInt(int[] partialByte) {
+        int[] result = generateCode(partialByte);
 
-        byte out = 0;
-        for (int i = 0; i < 7; i++) {
-            out = (byte) (out << 1);
+        byte op = 0;
+        for (int i = 0; i < DATA_BITS_WITH_PARITY; i++) {
+            op = (byte) (op << 1);
             if (result[i] == 1) {
-                out = (byte)(out | 1);
+                op = (byte)(op | 1);
             }
         }
-        out = (byte) (out << 1);
+        op = (byte) (op << 1);
 
-        return out;
+        return op;
     }
 
-    static int[] generateCode(int a[]) {
+    private int[] generateCode(int a[]) {
         // We will return the array 'b'.
         int b[];
 
@@ -125,7 +83,7 @@ class Hamming {
         return b;
     }
 
-    private static int getParity(int b[], int power) {
+    private int getParity(int b[], int power) {
         int parity = 0;
         for(int i=0 ; i < b.length ; i++) {
             if(b[i] != 2) {
@@ -151,9 +109,9 @@ class Hamming {
         return parity;
     }
 
-    static void receiveWrapper(byte[] b) {
+    public byte decode(byte[] b) {
         byte finalByte = 0;
-        int[] input = new int[7];
+        int[] input = new int[DATA_BITS_WITH_PARITY];
 
         for (int i = 0; i<2; i++){
             byte inputByte = (byte) (b[i] >> 1);
@@ -161,7 +119,7 @@ class Hamming {
                 input[j] = inputByte & 1;
                 inputByte = (byte) (inputByte >> 1);
             }
-            int[] result = myReceive(input, 3);
+            int[] result = receive(input, PARITY_BITS_PER_BYTE);
             for (int j = result.length-1; j >= 0; j--) {
                 finalByte = (byte) (finalByte << 1);
                 if (result[j] == 1) {
@@ -169,10 +127,10 @@ class Hamming {
                 }
             }
         }
-        System.out.println("\nFinal Byte: "+ finalByte);
+        return finalByte;
     }
 
-    static int[] myReceive(int a[], int parity_count) {
+    private int[] receive(int a[], int parity_count) {
         // This is the receiver code. It receives a Hamming code in array 'a'.
         // We also require the number of parity bits added to the original data.
         // Now it must detect the error and correct it, if any.
@@ -208,20 +166,20 @@ class Hamming {
 
         int error_location = Integer.parseInt(syndrome.toString(), 2);
         if(error_location != 0) {
-            System.out.println("Error is at location " + error_location + ".");
+//            System.out.println("Error is at location " + error_location + ".");
             a[error_location-1] = (a[error_location-1]+1)%2;
-            System.out.println("Corrected code is:");
+//            System.out.println("Corrected code is:");
             for(int i=0 ; i < a.length ; i++) {
-                System.out.print(a[a.length-i-1]);
+//                System.out.print(a[a.length-i-1]);
             }
-            System.out.println();
+//            System.out.println();
         }
         else {
-            System.out.println("There is no error in the received data.");
+//            System.out.println("There is no error in the received data.");
         }
 
         // Finally, we shall extract the original data from the received (and corrected) code:
-        int[] result = new int[4];
+        int[] result = new int[DATA_BITS_PER_BYTE];
         int count = 0;
         power = parity_count-1;
         for(int i=a.length ; i > 0 ; i--) {
@@ -233,66 +191,5 @@ class Hamming {
             }
         }
         return result;
-    }
-    static void receive(int a[], int parity_count) {
-        // This is the receiver code. It receives a Hamming code in array 'a'.
-        // We also require the number of parity bits added to the original data.
-        // Now it must detect the error and correct it, if any.
-
-        int power;
-        // We shall use the value stored in 'power' to find the correct bits to check for parity.
-
-        int parity[] = new int[parity_count];
-        // 'parity' array will store the values of the parity checks.
-
-        StringBuilder syndrome = new StringBuilder();
-        // 'syndrome' string will be used to store the integer value of error location.
-
-        for(power=0 ; power < parity_count ; power++) {
-            // We need to check the parities, the same no of times as the no of parity bits added.
-
-            for(int i=0 ; i < a.length ; i++) {
-                // Extracting the bit from 2^(power):
-
-                int k = i+1;
-                String s = Integer.toBinaryString(k);
-                int bit = ((Integer.parseInt(s))/((int) Math.pow(10, power)))%10;
-                if(bit == 1) {
-                    if(a[i] == 1) {
-                        parity[power] = (parity[power]+1)%2;
-                    }
-                }
-            }
-            syndrome.insert(0, parity[power]);
-        }
-        // This gives us the parity check equation values.
-        // Using these values, we will now check if there is a single bit error and then correct it.
-
-        int error_location = Integer.parseInt(syndrome.toString(), 2);
-        if(error_location != 0) {
-            System.out.println("Error is at location " + error_location + ".");
-            a[error_location-1] = (a[error_location-1]+1)%2;
-            System.out.println("Corrected code is:");
-            for(int i=0 ; i < a.length ; i++) {
-                System.out.print(a[a.length-i-1]);
-            }
-            System.out.println();
-        }
-        else {
-            System.out.println("There is no error in the received data.");
-        }
-
-        // Finally, we shall extract the original data from the received (and corrected) code:
-        System.out.println("Original data sent was:");
-        power = parity_count-1;
-        for(int i=a.length ; i > 0 ; i--) {
-            if(Math.pow(2, power) != i) {
-                System.out.print(a[i-1]);
-            }
-            else {
-                power--;
-            }
-        }
-        System.out.println();
     }
 }
