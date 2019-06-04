@@ -5,9 +5,7 @@ public class UdpClientSender {
 
 //    private static final int PORT = 1983;
 //    private static final int LISTEN_AT_PORT = 1983;
-    private DatagramSocket sendToSocket, listenAtSocket;
     private InetAddress host;
-    private static UdpClientSender client;
     private DatagramSocket socket;
 
     public UdpClientSender(DatagramSocket socket) throws SocketException, UnknownHostException {
@@ -29,7 +27,7 @@ public class UdpClientSender {
         socket.send(datagramPacket);
     }
 
-    public synchronized byte[] receiveData() throws SocketException {
+    public synchronized byte[] receiveData() {
         byte[] buffer = new byte[Constants.HAMMING_ENCODED_SIZE];
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
         try {
