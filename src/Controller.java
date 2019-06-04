@@ -6,12 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Controller {
-    private static final int MAX_RETRIES = 60;
-    private static final int ACK_COUNT = 5;
+    private static final int MAX_RETRIES = 200;
+    private static final int ACK_COUNT = 30;
     private static final int MSG_ID_MAX = 128;
-
-//    private static final int SEND_TO_PORT = 1983;
-//    private static final int SENDER_PORT = 1993;
 
     private String name;
     private MessageBuilder messageBuilder;
@@ -21,6 +18,8 @@ public class Controller {
     private int lastReceivedMsgId;
     private int lastReceivedAckId;
     private ChatWindow window;
+    private int idCount = 1;
+
 
     public Controller(String name, DatagramSocket senderSocket, int sendToPort, ChatWindow window) throws SocketException, UnknownHostException {
         this.name = name;
@@ -41,7 +40,7 @@ public class Controller {
     }
 
     public void send(byte[] data) {
-        int idCount = 1;
+//        int idCount = 1;
         try {
             for (int i = 0; i < data.length; i = i + Constants.DATA_BYTES_PER_MESSAGE) {
                 int end = i + Constants.DATA_BYTES_PER_MESSAGE;
@@ -61,22 +60,18 @@ public class Controller {
                 byte[] finalMessage = encodedChunk.array();
 
                 int retryCount = 0;
-                System.out.println("Starting send with idCount " + idCount + "\n");
+//                System.out.println("Starting send with idCount " + idCount + "\n");
                 while (retryCount < MAX_RETRIES && lastReceivedAckId != idCount) {
                     udpSender.sendData(finalMessage, sendToPort);
-                    //System.out.println(name + ": data sent");
-                    //byte[] response = udpSender.receiveData();
-                    //Message reply = unWrap(response);
+//                    System.out.println(name + ": data sent");
                     Thread.sleep(200);
-                    //if(reply.id == idCount){
                     if (lastReceivedAckId == idCount) {
                         break;
                     }
-                    System.out.print(retryCount + " ");
+//                    System.out.print(retryCount + " ");
                     retryCount++;
-//                    System.out.println("XXX retrying " + retryCount);
                 }
-                System.out.println();
+//                System.out.println();
                 if (retryCount == MAX_RETRIES) {
 //                    System.out.println("Message exceeded max send retries");
                 }
@@ -101,26 +96,25 @@ public class Controller {
 
     public void receive(byte[] data) throws IOException {
         Message response = unWrap(data);
-        System.out.println(name+": In receive..");
+//        System.out.println(name+": In receive..");
         if (response.opcode.equals(Message.ACK_OPCODE)) {
-            System.out.println("Got ack..");
+//            System.out.println("Got ack..");
             // This is ack message
             if(((lastReceivedAckId+1)%128) <= response.id){
                 lastReceivedAckId = response.id;
-                System.out.println("New last ack id: " + lastReceivedAckId);
             }
             return;
         }
         // This is normal message receive
         byte[] ack = wrap(new byte[0], response.id, Message.ACK_OPCODE);
         for(int i=0; i<ACK_COUNT; i++){
-//            System.out.print("Send ack " + i + " ");
             udpSender.sendData(ack, sendToPort);
         }
         if (((lastReceivedMsgId + 1) % MSG_ID_MAX) <= response.id) {
             System.out.print(new String(response.data));
-            window.updateText(new String(response.data));
-//            System.out.println("Got msg. Ack finally from " + lastReceivedMsgId + " to " + response.id);
+            if(window != null){
+                window.updateText(new String(response.data), name);
+            }
             lastReceivedMsgId = response.id;
         }
     }

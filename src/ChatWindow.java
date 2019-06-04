@@ -29,7 +29,7 @@ public class ChatWindow {
                     e.printStackTrace();
                 }
 
-//                ChatWindow window = new ChatWindow();
+//                ChatWindow window = new ChatWindow("Me");
 //                window.display();
             }
         });
@@ -81,8 +81,8 @@ public class ChatWindow {
         newFrame.setVisible(true);
     }
 
-    public void updateText(String text) {
-        chatBox.append("<" + username + ">:  " + text
+    public void updateText(String text, String from) {
+        chatBox.append("<" + from + ">:  " + text
                 + "\n");
     }
 
@@ -100,7 +100,7 @@ public class ChatWindow {
                 messageBox.setText("");
             } else {
                 String text = messageBox.getText();
-                chatBox.append("<" + username + ">:  " + text
+                chatBox.append("<" + "Me" + ">:  " + text
                         + "\n");
                 messageBox.setText("");
                 client.send(text.getBytes());

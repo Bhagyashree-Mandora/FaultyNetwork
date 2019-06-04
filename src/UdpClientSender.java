@@ -3,8 +3,6 @@ import java.net.*;
 
 public class UdpClientSender {
 
-//    private static final int PORT = 1983;
-//    private static final int LISTEN_AT_PORT = 1983;
     private InetAddress host;
     private DatagramSocket socket;
 
@@ -27,15 +25,15 @@ public class UdpClientSender {
         socket.send(datagramPacket);
     }
 
-    public synchronized byte[] receiveData() {
-        byte[] buffer = new byte[Constants.HAMMING_ENCODED_SIZE];
-        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-        try {
-            socket.receive(reply);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return reply.getData();
-    }
+//    public synchronized byte[] receiveData() {
+//        byte[] buffer = new byte[Constants.HAMMING_ENCODED_SIZE];
+//        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+//        try {
+//            socket.receive(reply);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return reply.getData();
+//    }
 }
