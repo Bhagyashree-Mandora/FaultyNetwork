@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -21,7 +20,7 @@ public class Controller {
     private int idCount = 1;
 
 
-    public Controller(String name, DatagramSocket senderSocket, int sendToPort, ChatWindow window) throws SocketException, UnknownHostException {
+    public Controller(String name, DatagramSocket senderSocket, int sendToPort, ChatWindow window) throws UnknownHostException {
         this.name = name;
         messageBuilder = new MessageBuilder();
         hamming = new Hamming();
@@ -48,16 +47,7 @@ public class Controller {
                     end = data.length;
                 }
                 byte[] chunk = Arrays.copyOfRange(data, i, end);
-
-                byte[] messageChunk = messageBuilder.build(idCount, chunk, Message.DATA_MSG_OPCODE);
-                ByteBuffer encodedChunk = ByteBuffer.allocate(Constants.HAMMING_ENCODED_SIZE);
-
-                for (byte aByte : messageChunk) {
-                    byte[] encoded = hamming.encode(aByte);
-                    encodedChunk.put(encoded);
-                }
-
-                byte[] finalMessage = encodedChunk.array();
+                byte[] finalMessage = wrap(chunk, idCount, Message.DATA_MSG_OPCODE);
 
                 int retryCount = 0;
 //                System.out.println("Starting send with idCount " + idCount + "\n");
