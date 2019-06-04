@@ -1,3 +1,4 @@
+//http://www.pracspedia.com/CN/hamming.html
 class Hamming {
 
     private static final int DATA_BITS_PER_BYTE = 4;

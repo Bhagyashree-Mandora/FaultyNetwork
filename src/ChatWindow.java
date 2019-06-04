@@ -1,3 +1,4 @@
+//https://codereview.stackexchange.com/questions/25461/simple-chat-room-swing-gui
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
