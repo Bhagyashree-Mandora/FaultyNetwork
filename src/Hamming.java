@@ -5,6 +5,7 @@ class Hamming {
     private static final int DATA_BITS_WITH_PARITY = 7;
 
     public byte[] encode(byte b) {
+        //Converts one byte of data into two hamming encoded bytes (7 bits + 1 dummy bit each)
         byte[] result = new byte[2];
         int[] partialByte = new int[DATA_BITS_PER_BYTE];
 
@@ -25,6 +26,7 @@ class Hamming {
     }
 
     private byte getCodedByteFromInt(int[] partialByte) {
+        //converts int[] from hamming generate function to byte
         int[] result = generateCode(partialByte);
 
         byte op = 0;
@@ -110,6 +112,7 @@ class Hamming {
     }
 
     public byte decode(byte[] b) {
+        //Converts two hamming encoded bytes into a single data byte
         byte finalByte = 0;
         int[] input = new int[DATA_BITS_WITH_PARITY];
 
